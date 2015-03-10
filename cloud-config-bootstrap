@@ -1,0 +1,96 @@
+#cloud-config
+
+ssh_authorized_keys:
+    - ssh-rsa YOUR-KEY-HERE
+
+hostname: initializing
+
+write_files:
+    - path: /etc/starship.conf
+      permissions: 0644
+      owner: root
+      content: |
+        ## STARSHIP CONFIGURATION SETTINGS ##
+        # LINK YOUR CLOUD CONFIG TEMPLATE HERE #
+        STARSHIP_TEMPLATE="https://gist.githubusercontent.com/..../cloud-config-template.yml"
+
+        # Specify the output file here, by default it uses /opt/cloud-config.yml
+        # You must ALSO change the location in the starship-cloudinit.service (last line of the bootstrap file)
+        #STARSHIP_OUTPUT="/opt/cloud-config.yml"
+        
+        ## EXTRA SETTINGS ##
+        # You may define any extra environment variables you want here that will be replaced in your Starship file
+        # For example:
+        # myvar=test
+        ## END CONFIGURATION ##
+
+        ## END EXTRA SETTINGS ##
+    - path: /opt/bin/install-starship
+      permissions: 0755
+      owner: root
+      content: |
+        #!/bin/bash
+        INSTALL_URL="https://raw.github.com/Shaped/Starship/master/bin/install-starship"
+
+        while [ ! -e /opt/bin/install-starship ]; do
+         wget -q -N -P /opt/bin $INSTALL_URL && chmod +x /opt/bin/install-starship
+         if [ ! -e /opt/bin/install-starship ]; then 
+           echo Failed to install.. Retrying in 5 seconds.. ^C to quit.
+           sleep 5
+         else
+           echo install-starship installed successfully to /opt/bin
+         fi
+        done
+    - path: /etc/resolv.conf
+      permissions: 0644
+      owner: root
+      content: |
+        nameserver 8.8.8.8
+        nameserver 8.8.4.4
+coreos:
+  units:
+    - name: install-starship.service
+      command: start
+      runtime: true
+      content: |
+        [Unit]
+        Requires=install-starship.service
+        After=install-starship.service
+        Description=Shaped HMSS Star Ship Installer 
+        Documentation=starship.shaped.ca
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStartPre=/opt/bin/init-starship
+        ExecStart=/opt/bin/install-starship
+    - name: starship-cloudinit.service
+      runtime: true
+      command: start
+      content: |
+        [Unit]
+        Description=Main StarShip service - processes a template for hand-off to coreos-cloudinit
+        Documentation=starship.shaped.ca
+        Requires=install-starship.service
+        After=install-starship.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        EnvironmentFile=/etc/starship.conf
+        ExecStart=/opt/bin/starship
+    - name: starship-cloudinit.service
+      runtime: true
+      command: start
+      content: |
+        [Unit]
+        Description=Re-initialize coreos-cloudinit with the StarShipped template
+        Documentation=starship.shaped.ca
+        Requires=starship.service
+        After=starship.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        EnvironmentFile=/etc/environment
+        ExecStart=/usr/bin/coreos-cloudinit --from-file=/opt/cloud-config.yml
