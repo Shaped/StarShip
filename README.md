@@ -10,9 +10,52 @@ Once the metadata is gathered and preconditions satisfied, it replaces your chos
 
 Note: As of this current version, un-set variables are ignored - essentially placing them in a different namespace. Namespacing has not been a problem - however if you include Bash scripts in your write_files statements you must be careful. You can use the variables to make replacements in your script before it's written - however - if your script itself uses a variable with the same name, it will again, get replaced in the written script and will not be evaluated at runtime. We may decide to prefix variables with a %-sign in the future to avoid any confusion.
 
-##
+## Usage
 
-FAQ:
+```sh
+#-bash#0 06:46:34|root@web:~/starship# bin/starship help
+Running: bin/starship help
+
+Shaped StarShip v0.01a
+Usage: bin/starship command [options]
+
+Available Commands: (parameters in square brackets are optional, while in parenthesis are required)
+
+process  (template) [output] [env]    Generates a .starship file from a template directory.
+combine  (template) [output]          Combines files in your template directroy into a yaml file.
+package  (template) [output]          Packages a template for distribution (does not process).
+explode  (template) [output]          Unpackages a packaged template.
+validate (template)                   Combines if needed, processes and validates a template with coreos-cloudinit.
+help     [command]                    Print full help, or help for specific command.
+
+Command Options:
+
+process (template) [output] [env]     Processes a template for use with coreos-cloudinit and replaces variables
+                                      defined in your cloud-config template with ones in your system environment,
+                                      or the one provided with the optional [env]. You can pass any type of template
+                                      and starship will autodetect and work with it and yo
+
+  (template)                          The location of your template, can be URL or local file/directory.
+  [output]                            The output file to use. Must be a writable file path. You also can set
+  [environment]                       An environment/script file to use - otherwise will use current environment.
+
+combine (template) (output)           Combine files in a template directory into a single yaml file.
+  (template)                          The location of your template, can be URL or local file/directory.
+  (output)                            The output file for the yaml cloud-config template.
+
+package (template) (output)           Create a starship package for distribution.
+  (template)                          The location of your template directory.
+  (output)                            The output file for the binary starship file.
+
+explode (template) (output)           Unpacks a starship package.
+  (template)                          The location of the packed template.
+  (output)                            The output directory (will be created if does not exist).
+
+validate (template)                   Process and validate a template with coreos-cloudinit - does not save template.
+  (template)                          The location of your template, can be URL or local file/directory.
+```
+
+## FAQ:
 
 Q. How does it work?
 
