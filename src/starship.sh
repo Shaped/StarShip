@@ -164,7 +164,7 @@ starship () {
 
      if (curl -s $STARSHIP_TEMPLATE > $tmp); then
        addTF $tmp
-       eval $1=$tmp
+       echo $tmp
      fi
   }
 
