@@ -2,11 +2,74 @@
 
 StarShip is a tool and process for ``cloud-config`` templating.
 
+TL;DR: Main feature - replace ${VARIABLES} in a file based on an environment, secondary feature - package cloud-config nicely for distribution, tetiary feature - cloud-config "directories" with drop-ins
+
 This allows you to bring up a CoreOS host and query metadata services (ANY metadata service - OpenStack, DO API, AWS - even your OWN custom metadata) before building/adding the host to the cluster. StarShip can wait for the public/private IP or even volume storage to be attached before downloading the template and initializing the node.
 
 Once the metadata is gathered and preconditions satisfied, it replaces your chosen variables within a ``cloud-config`` template and initializes the system how you want.
 
 Note: As of this current version, un-set variables are ignored - essentially placing them in a different namespace. Namespacing has not been a problem - however if you include Bash scripts in your write_files statements you must be careful. You can use the variables to make replacements in your script before it's written - however - if your script itself uses a variable with the same name, it will again, get replaced in the written script and will not be evaluated at runtime. We may decide to prefix variables with a %-sign in the future to avoid any confusion.
+
+##
+
+FAQ:
+
+Q. How does it work?
+
+A. The best help is in the app. We can sum it up in 4 steps:
+
+1. It uses a "bootstrap" cloud-config to load the tool and your metadata script. There's an example metadata (geared towards OpenStack) script at ``examples/metadata.sh`` - use this as your reference.
+
+2. The metadata script simply waits for IP addresses to be attached, then populates the environment with $PUBLIC_IPV4, $PRIVATE_IPV4 and the hostname (instance name) you entered in when launching the unit {at your cloud provider | with nova}
+Note: That, like a lot of tools like this (one favorite, <a href="https://github.com/zettio/weave">weave</a> for example) are installed with systemd units that require internet access. There are obviously other ways to get the tool on the host, if you require private-only networking but that is an excersize left to the reader.
+
+3. Once the environment is set, the ``starship`` binary is called and it will pull your cloud-config template (yml or package) from either a URL (git or otherwise) or a file (provided by write_files, thus the original cloud-config) 
+
+4. Once that's done, the boot-strap cloud config will continue (uses systemd units) loading another unit which runs ``coreos-cloudinit`` with the new file.
+
+Q. What's a "template directory"?
+
+A. Here's the structure of an example template directory. All the files in this directory are SIMPLY concatenated (will be properly yaml processed in the golang version, thus you have to keep your indenting proper in separate files). It's not even 100% tested.
+
+In the next version - it will compile a YAML file for you properly with proper spacing and will also substitute any write_files for BASE64 encoding (can enable/disable this for ASCII files, always on for binaries obviously).
+
+```
+./                                      - template directory
+./cloud-config.yml                      - main file (optional, contains #cloud-config header but would be added if doesn’t exist)
+./hostname.yml                          - the hostname: section
+./ssh_authorized_keys.yml               - the ssh_authorized_keys: section
+./coreos.yml                            - the coreos: section, alternatively can use a drop in dir as below:
+./coreos.d/                             - drop-ins for coreos: section
+./coreos.d/etcd.yml                     - etcd: section
+./coreos.d/fleet.yml                    - fleet: section
+./coreos.d/units.d/                     - drop-ins for units: section
+./coreos.d/units.d/docker.network.yml   - unit for docker network
+./coreos.d/units.d/docker.service.yml   - unit for docker service
+./coreos.d/units.d/docker.service.d/*   - drop-ins for docker service
+./write_files.yml                       - any files you dont want to put as drop ins
+./write_files.d/                        - drop in files for write_files directive
+./write_files.d/etc/hosts               - an example drop in file
+```
+
+Q. Why should I use this?
+
+A. You probably shouldn't! Maybe if you have a complex cloud config and would rather manage it as a directory of files than a single file but.. Really, if you can find a better way to do what you're trying to do, do it. This arose out of some issues with ``coreos-cloudinit`` mainly 205, 325. 325 even shows a way to stuff variables into etcd and fleetd leveraging systemd for variable substitution instead.
+
+Q. Where the foo(k); is the source?
+
+A. See above and also: This is implemented as a bash script. It's pre-alpha and currently essentially a personal tool. While it works, and it's not coded that badly..it's still bash. I plan on re-writing this in golang and will release the source publically at that time. This is a very new project and part of a larger project in general.
+
+Q. No really, where's the source?
+
+A. Available on request :)
+
+Q. You want me to run a binary bash script on my system? I don't think so.
+
+A. Don't! Read above! You shouldn't use this. Seriously, maybe when I release the next version it might be useful. Which will come with source.
+
+Q. WTF license?
+
+A. See above.
 
 ## History
 
@@ -22,7 +85,7 @@ What are we supposed to do? Change the ``cloud-config`` for each system? Most pr
 
 What if we wanted to create/use other variables? What if we just wanted our cloud-config to be a template?
 
-#### The Old Way
+#### One Way
 
 Create and edit your ``cloud-config`` for Host 1
 ```yaml
@@ -82,7 +145,11 @@ write_files:
 
 That's 3 nodes and already it's not fun.
 
-#### The StarShip Way
+Wait. Couldn't you kick the fleet and etcd stuff over into drop-in units inside the cloud-config and have systemd handle the substitution?
+
+YEP! You could. Definitely, and you probably should. However. I personally think that this results in a more readable cloud-config in the end - plus you can do substitutions ANYWHERE not just as parameters to commands - maybe that's useful to you.
+
+#### Our Way
 
 ``cloud-config`` template for all hosts
 ```yaml
