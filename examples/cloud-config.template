@@ -1,0 +1,28 @@
+#cloud-config
+
+ssh_authorized_keys:
+  - ${SSH_KEY}
+
+hostname: ${HOSTNAME}
+
+coreos:
+  etcd:
+    name: ${HOSTNAME}
+    discovery: ${DISCOVERY}
+    addr: ${PUBLIC_IPV4}:4001
+    peer-addr: ${PUBLIC_IPV4}:7001 
+  fleet:
+    public-ip: ${PUBLIC_IPV4}   # used for fleetctl ssh command
+    metadata: cpus=${CPUS},host=${HOSTNAME},memory=${MEMORY},provider=${PROVIDER},region=${REGION},storage_size=${STORAGE_SIZE},storage_type=${STORAGE_TYPE},role=${ROLES}
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start
+
+write_files:
+  - path: /etc/hosts
+    permissions: '0644'
+    owner: core
+    content: |
+      localhost 127.0.0.1

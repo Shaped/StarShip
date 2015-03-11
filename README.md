@@ -55,22 +55,6 @@ Q. Why should I use this?
 
 A. You probably shouldn't! Maybe if you have a complex cloud config and would rather manage it as a directory of files than a single file but.. Really, if you can find a better way to do what you're trying to do, do it. This arose out of some issues with ``coreos-cloudinit`` mainly 205, 325. 325 even shows a way to stuff variables into etcd and fleetd leveraging systemd for variable substitution instead.
 
-Q. Where the foo(k); is the source?
-
-A. See above and also: This is implemented as a bash script. It's pre-alpha and currently essentially a personal tool. While it works, and it's not coded that badly..it's still bash. I plan on re-writing this in golang and will release the source publically at that time. This is a very new project and part of a larger project in general.
-
-Q. No really, where's the source?
-
-A. Available on request :)
-
-Q. You want me to run a binary bash script on my system? I don't think so.
-
-A. Don't! Read above! You shouldn't use this. Seriously, maybe when I release the next version it might be useful. Which will come with source.
-
-Q. WTF license?
-
-A. See above.
-
 ## History
 
 CoreOS is awesome. Fleet is awesome. Containers are awesome. ``cloud-config``'s are awesome.
@@ -175,7 +159,19 @@ You might be wondering, what if I want to have a 3 or 5 node etcd cluster and th
 Just create a template for the central nodes and another template for the worker nodes. 
 
 ## License
-This is currently completely private software. See <a href="LICENSE.md">``LICENSE.md``</a>. We do plan on releasing this in the future with a different license, preferably Open Source.
+Copyright 2015 Jai Boudreault / Shaped.ca
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ### Copyright
-StarShip is (C) 2015 Jason Boudreault / Shaped.ca - All Rights Reserved
+(C) 2015 Jai Boudreault / Shaped.ca - All Rights Reserved

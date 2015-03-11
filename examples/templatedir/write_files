@@ -1,0 +1,6 @@
+write_files:
+  - path: /etc/hosts
+    permissions: '0644'
+    owner: core
+    content: |
+      localhost 127.0.0.1
