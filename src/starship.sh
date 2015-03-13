@@ -431,15 +431,6 @@ starship () {
 
       templateToFile
 
-      echo "Pre-validating template.."
-      if ! validateTemplate $STARSHIP_TEMPLATE; then
-        echo "Pre-validation failed! We will attempt validation again after processing.."
-        echo "However, you should try to correct any errors you see above.."
-        echo -n "... press ^C and cancel ..."
-        sleep 5
-        echo -n $'\r'
-      fi
-
       echo "Processing template $STARSHIP_TEMPLATE into $STARSHIP_OUTPUT.."
       processTemplate
   }
