@@ -5,17 +5,21 @@
 # Usage: starship command [options]
 ##
 
-
 starship () {
   STARSHIP_VERSION="0.01a"
 
   DEFAULT_OUTPUT="/opt/cloud-config"
-
+  
   temp_files=""
   untarfiles=""
   _printedUsage=0
   _printedCommandHeader=0
 
+  source /etc/starship.conf
+
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/lib
+  export PATH=$PATH:/opt/bin
+  
   # prints version
   _printVersion() {
     echo "Shaped StarShip v$STARSHIP_VERSION"
@@ -32,6 +36,7 @@ starship () {
   # prints help
   _printHelp() {
     _printUsage $*
+    echo $*
     echo
     echo "Available Commands: (parameters in square brackets are optional, while in parenthesis are required)"
     echo
@@ -149,7 +154,7 @@ starship () {
   validateTemplate() {
     if _hasCloudConfigHeader $1; then
       if coreos-cloudinit -from-file=$1 -validate=true; then
-        echo "Validation succeeded!"
+       echo "Validation succeeded!"
        return 0;
       fi
     fi
