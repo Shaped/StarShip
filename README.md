@@ -1,3 +1,7 @@
+# Archival/Deprecation Notice
+
+CoreOS is no longer a thing; it turned into ContainerOS and died. :( Thus, this repository is essentially useless. Code is left here for archival reasons. This will be the final commit to this repo.
+
 # StarShip
 
 StarShip is a tool and process for ``cloud-config`` templating.
